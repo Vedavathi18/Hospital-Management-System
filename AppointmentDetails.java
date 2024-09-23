@@ -1,6 +1,5 @@
-package Receptionists;
+package Doctors;
 
-import Doctors.*;
 import Main.Connector;
 import Main.Hospital;
 import java.sql.Connection;
@@ -23,40 +22,58 @@ public final class AppointmentDetails extends javax.swing.JFrame {
     PreparedStatement ps2 = null;
 
     DefaultTableModel defaultTableModel = new DefaultTableModel();
+    //String data;
     String appDetails[];
 
-    public AppointmentDetails() {
+    public AppointmentDetails(String appDetails[]) {
+        this.appDetails = appDetails;
+        System.out.println("Doctor Id = "+appDetails[0]);
         initComponents();
         ImageIcon ic = new ImageIcon(getClass().getResource("/Images/hospital.png"));
         this.setIconImage(ic.getImage());
-        Object columns[] = {"Appointment_Id","Doctor_ID","Patient_ID", "Patient Name", "App Room", "Date and Time"};
+        //data = name;
+        Object columns[] = {"Appointment_Id","Patient_ID","patientName", "Age", "Gender", "Blood Group", "Date", "Start Time", "End Time"};
         defaultTableModel.setColumnIdentifiers(columns);
         patientDetailsTable.setModel(defaultTableModel);
         loadData();
+    }
+
+    public AppointmentDetails() {
+        initComponents();
     }
 
     public void loadData() {
         connection = Connector.ConnectDb();
         defaultTableModel.getDataVector().removeAllElements();
         defaultTableModel.fireTableDataChanged();
-        String sql = "select app.count,app.dId,p.pid, p.name, app.room, app.StartAt \n" +
+        String sql = "select app.count,p.pid, p.name, i.age, i.gender, p.bloodGrp, app.StartAt, app.EndsAt\n" +
         "from info i\n" +
         "inner join patient p\n" +
         "on p.pid = i.pateintId\n" +
         "inner join appointment app\n" +
-        "on app.pId = p.pid\n" ;//+
+        "on app.pId = p.pid\n" +
+        "where app.dId = '" + appDetails[0] +"'";
         try {
             ps = connection.prepareStatement(sql);
             rs = ps.executeQuery();
-            System.out.println("Query Executed..");
-            Object columnData[] = new Object[8];
+
+            Object columnData[] = new Object[9];
             while (rs.next()) {
                 columnData[0] = rs.getInt("count");
-                columnData[1] = rs.getString("dId");
-                columnData[2] = rs.getString("pid");
-                columnData[3] = rs.getString("name");
-                columnData[4] = rs.getString("room");
-                columnData[5] = rs.getString("StartAt");
+                columnData[1] = rs.getString("pid");
+                columnData[2] = rs.getString("name");
+                columnData[3] = rs.getString("age");
+                columnData[4] = rs.getString("gender");
+                columnData[5] = rs.getString("bloodGrp");
+                String start = rs.getString("StartAt");
+                String end = rs.getString("EndsAt");
+                String Date = start.substring(0, 10);
+                String startTime = start.substring(10);
+                System.out.println("Appointment Starts at: "+start);
+                System.out.println("Appointment Ends at: "+end);
+                columnData[6] = Date;
+                columnData[7] = startTime; 
+                columnData[8] = end.substring(10);
                 defaultTableModel.addRow(columnData);
 
             }
@@ -111,13 +128,13 @@ public final class AppointmentDetails extends javax.swing.JFrame {
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
-                .addContainerGap(572, Short.MAX_VALUE)
+                .addContainerGap(545, Short.MAX_VALUE)
                 .addComponent(jLabel10)
-                .addGap(393, 393, 393)
+                .addGap(421, 421, 421)
                 .addComponent(BackToAppointmentjLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel16)
-                .addGap(34, 34, 34))
+                .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -130,7 +147,7 @@ public final class AppointmentDetails extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        getContentPane().add(jPanel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 35, -1, -1));
+        getContentPane().add(jPanel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 35, 1290, -1));
 
         patientDetailsTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -145,13 +162,11 @@ public final class AppointmentDetails extends javax.swing.JFrame {
         ));
         jScrollPane1.setViewportView(patientDetailsTable);
 
-        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(56, 101, 1230, 380));
+        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 101, 1270, 380));
 
-        jPanel1.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 2, true));
+        jPanel1.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 3, true));
 
-        AppointmentCompletedjLabel.setFont(new java.awt.Font("Serif", 1, 18)); // NOI18N
-        AppointmentCompletedjLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        AppointmentCompletedjLabel.setText("Cancel");
+        AppointmentCompletedjLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Icon/check-mark-3-48.png"))); // NOI18N
         AppointmentCompletedjLabel.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 AppointmentCompletedjLabelMouseClicked(evt);
@@ -162,26 +177,24 @@ public final class AppointmentDetails extends javax.swing.JFrame {
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(AppointmentCompletedjLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 87, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(15, 15, 15)
+                .addComponent(AppointmentCompletedjLabel)
+                .addContainerGap(21, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(AppointmentCompletedjLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+            .addComponent(AppointmentCompletedjLabel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 44, Short.MAX_VALUE)
         );
 
-        getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(1186, 528, 100, 40));
+        getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(1160, 519, 90, 50));
 
         jLabel1.setText("jLabel1");
         getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(36, 125, 610, 170));
 
         jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Icon/Hospital_Image_1366x768.jpg"))); // NOI18N
-        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1330, 590));
+        jLabel2.setText("jLabel2");
+        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1310, 590));
 
         pack();
         setLocationRelativeTo(null);
@@ -195,8 +208,8 @@ public final class AppointmentDetails extends javax.swing.JFrame {
 
     private void BackToAppointmentjLabelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_BackToAppointmentjLabelMouseClicked
 
-        ReceptionistActivity rActivity = new ReceptionistActivity();
-        rActivity.setVisible(true);
+        doctorActivity dActivity = new doctorActivity(appDetails[0]);
+        dActivity.setVisible(true);
         dispose();
     }//GEN-LAST:event_BackToAppointmentjLabelMouseClicked
 
@@ -206,14 +219,55 @@ public final class AppointmentDetails extends javax.swing.JFrame {
         int row = patientDetailsTable.getSelectedRow();
         if (row >= 0) {
             int appID = Integer.parseInt(patientDetailsTable.getModel().getValueAt(row, 0).toString());
+            String docId = appDetails[0];
             String patientId = patientDetailsTable.getModel().getValueAt(row, 1).toString();
             
-            String sql = "delete from appointment where count ='" + appID + "'";            
+            String patientName = patientDetailsTable.getModel().getValueAt(row, 2).toString();
+            String appDate = (patientDetailsTable.getModel().getValueAt(row, 6).toString());
+            //String StartTime = 
+            String docName = patientDetailsTable.getModel().getValueAt(row, 2).toString();
+            String startTime =  patientDetailsTable.getModel().getValueAt(row, 6).toString();
+            String endTime =  patientDetailsTable.getModel().getValueAt(row, 7).toString();
+            int fees;
+            String sql = "select fees from doctor where id ='" + docId + "'";
+            
             try {
                 ps2 = connection.prepareStatement(sql);
-                ps2.execute();
-                System.out.println("Appointment cancelled.");
-                JOptionPane.showMessageDialog(null, "Appointment Cancelled.");
+                rs = ps2.executeQuery();
+                rs.next();
+
+                fees = rs.getInt("fees");
+                System.out.println("Fees = "+fees);
+                System.out.println("Inserting billing info into bill table....");
+                String sql2 = "insert into bill(appointmentId,dId,pid,patientName,appointmentDate, amount) values (?,?,?,?,?,?)";
+                try {
+                    ps = connection.prepareStatement(sql2);
+                    System.out.println("Inserting data doctor data into info table");
+                    ps.setInt(1, appID);
+                    ps.setString(2, docId);
+                    ps.setString(3, patientId);
+                    ps.setString(4, patientName);
+                    ps.setString(5, appDate);
+                    ps.setInt(6, fees);
+                    ps.execute();
+                    System.out.println("Bill can be generated Now");
+                    System.out.println("Now removing the appointment");
+                    String sql3 = "Delete from appointment where count = '" + appID + "'";
+                    try {
+                        ps = connection.prepareStatement(sql3);
+                        ps.execute();
+                        JOptionPane.showMessageDialog(null, "Appointment Completed.");
+                        defaultTableModel.getDataVector().removeAllElements();
+                        defaultTableModel.fireTableDataChanged();
+//            loadData();
+                        connection.close();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                        JOptionPane.showMessageDialog(null, "Doctor named " + docName + " not found");
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
                 connection.close();
             } catch (SQLException e) {
                 e.printStackTrace();
